@@ -1,0 +1,165 @@
+lab:
+  name: netlab
+  image: quay.io/frrouting/frr:10.2.1
+  mgmt_subnet: 172.20.20.0/24
+
+timers:
+  bgp_keepalive: 3
+  bgp_hold: 9
+  bgp_connect_retry: 5
+  ospf_hello: 1
+  ospf_dead: 4
+  isis_hello: 1
+  isis_hello_multiplier: 3
+
+routers:
+  dca-r1:
+    site: dc-a
+    router_id: 10.0.1.1
+    interfaces:
+      lo:
+        ipv4: [10.0.1.1/32]
+        ospf: passive
+      eth1:
+        ipv4: [172.16.1.0/31]
+        ospf: point-to-point
+        peer: dca-edge:eth1
+    ospf:
+      area: 0.0.0.0
+
+  dca-edge:
+    site: dc-a
+    router_id: 10.0.1.2
+    interfaces:
+      lo:
+        ipv4: [10.0.1.2/32]
+        ospf: passive
+      eth1:
+        ipv4: [172.16.1.1/31]
+        ospf: point-to-point
+        peer: dca-r1:eth1
+      eth2:
+        ipv4: [172.16.10.0/31]
+        peer: bb1:eth1
+    ospf:
+      area: 0.0.0.0
+      default_originate: true
+    bgp:
+      asn: 65001
+      networks: [10.0.1.1/32, 10.0.1.2/32]
+      neighbors:
+        - address: 172.16.10.1
+          remote_as: 65000
+          description: bb1
+
+  bb1:
+    site: backbone
+    router_id: 10.0.0.1
+    interfaces:
+      lo:
+        ipv4: [10.0.0.1/32]
+        ospf: passive
+      eth1:
+        ipv4: [172.16.10.1/31]
+        peer: dca-edge:eth2
+      eth2:
+        ipv4: [172.16.0.0/31]
+        ospf: point-to-point
+        ldp: true
+        peer: bb2:eth1
+    ospf:
+      area: 0.0.0.0
+    ldp:
+      transport_address: 10.0.0.1
+    bgp:
+      asn: 65000
+      neighbors:
+        - address: 172.16.10.0
+          remote_as: 65001
+          description: dca-edge
+        - address: 10.0.0.2
+          remote_as: 65000
+          description: bb2
+          update_source: lo
+          next_hop_self: true
+          route_reflector_client: true
+
+  bb2:
+    site: backbone
+    router_id: 10.0.0.2
+    interfaces:
+      lo:
+        ipv4: [10.0.0.2/32]
+        ospf: passive
+      eth1:
+        ipv4: [172.16.0.1/31]
+        ospf: point-to-point
+        ldp: true
+        peer: bb1:eth2
+      eth2:
+        ipv4: [172.16.20.1/31]
+        peer: dcb-edge:eth2
+    ospf:
+      area: 0.0.0.0
+    ldp:
+      transport_address: 10.0.0.2
+    bgp:
+      asn: 65000
+      neighbors:
+        - address: 172.16.20.0
+          remote_as: 65002
+          description: dcb-edge
+        - address: 10.0.0.1
+          remote_as: 65000
+          description: bb1
+          update_source: lo
+          next_hop_self: true
+
+  dcb-edge:
+    site: dc-b
+    router_id: 10.0.2.2
+    interfaces:
+      lo:
+        ipv4: [10.0.2.2/32]
+        isis: passive
+      eth1:
+        ipv4: [172.16.2.1/31]
+        isis: point-to-point
+        peer: dcb-r1:eth1
+      eth2:
+        ipv4: [172.16.20.0/31]
+        peer: bb2:eth2
+    isis:
+      net: 49.0002.0100.0000.2002.00
+      default_originate: true
+    bgp:
+      asn: 65002
+      networks: [10.0.2.1/32, 10.0.2.2/32]
+      neighbors:
+        - address: 172.16.20.1
+          remote_as: 65000
+          description: bb2
+
+  dcb-r1:
+    site: dc-b
+    router_id: 10.0.2.1
+    interfaces:
+      lo:
+        ipv4: [10.0.2.1/32]
+        isis: passive
+      eth1:
+        ipv4: [172.16.2.0/31]
+        isis: point-to-point
+        peer: dcb-edge:eth1
+    isis:
+      net: 49.0002.0100.0000.2001.00
+
+tunnels:
+  - name: gre-ab
+    type: gre
+    a: {router: dca-edge, local: 10.0.1.2, address: 192.168.100.1/30}
+    b: {router: dcb-edge, local: 10.0.2.2, address: 192.168.100.2/30}
+  - name: ipip-ab
+    type: ipip
+    a: {router: dca-r1, local: 10.0.1.1, address: 192.168.101.1/30}
+    b: {router: dcb-r1, local: 10.0.2.1, address: 192.168.101.2/30}

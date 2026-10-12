@@ -1,0 +1,31 @@
+2026-10-12 21:14:59,248  INFO: Called via "Namespace(input=None, reload=False, test=True, debug=False, log_level='info', stdout=False, pathspace=None, filename='/tmp/netlab-intended.conf', overwrite=False, bindir='/usr/bin', confdir='/etc/frr', rundir='/var/run/frr', vty_socket=None, daemon='', test_reset=False)"
+2026-10-12 21:14:59,248  INFO: Loading Config object from file /tmp/netlab-intended.conf
+2026-10-12 21:14:59,258  INFO: Loading Config object from vtysh show running
+2026-10-12 21:14:59,271  INFO: "frr version 10.2.1_git" cannot be removed
+
+Lines To Delete
+===============
+ipv6 forwarding
+
+Lines To Add
+============
+router bgp 65000
+ neighbor 172.16.20.0 remote-as 65002
+exit
+router bgp 65000
+ neighbor 172.16.20.0 description dcb-edge
+exit
+router bgp 65000
+ neighbor 172.16.20.0 timers connect 5
+exit
+router bgp 65000
+ address-family ipv4 unicast
+  neighbor 172.16.20.0 route-map RM-EBGP-IN in
+ exit
+exit
+router bgp 65000
+ address-family ipv4 unicast
+  neighbor 172.16.20.0 route-map RM-EBGP-OUT out
+ exit
+exit
+frr version 10.2.1

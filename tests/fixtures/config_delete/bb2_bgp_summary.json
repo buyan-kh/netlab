@@ -1,0 +1,45 @@
+{
+"ipv4Unicast":{
+  "routerId":"10.0.0.2",
+  "as":65000,
+  "vrfId":0,
+  "vrfName":"default",
+  "tableVersion":10,
+  "ribCount":3,
+  "ribMemory":384,
+  "peerCount":1,
+  "peerMemory":16904,
+  "peers":{
+    "10.0.0.1":{
+      "hostname":"bb1",
+      "softwareVersion":"FRRouting/10.2.1_git",
+      "remoteAs":65000,
+      "localAs":65000,
+      "version":4,
+      "msgRcvd":61,
+      "msgSent":58,
+      "tableVersion":10,
+      "outq":0,
+      "inq":0,
+      "peerUptime":"00:02:38",
+      "peerUptimeMsec":158000,
+      "peerUptimeEstablishedEpoch":1791839540,
+      "pfxRcd":2,
+      "pfxSnt":0,
+      "state":"Established",
+      "peerState":"OK",
+      "connectionsEstablished":1,
+      "connectionsDropped":0,
+      "desc":"bb1",
+      "idType":"ipv4"
+    }
+  },
+  "failedPeers":0,
+  "displayedPeers":1,
+  "totalPeers":1,
+  "dynamicPeers":0,
+  "bestPath":{
+    "multiPathRelax":"false"
+  }
+}
+}

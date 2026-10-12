@@ -1,0 +1,24 @@
+name: {{ net.name }}
+
+mgmt:
+  network: {{ net.name }}-mgmt
+  ipv4-subnet: {{ net.mgmt_subnet }}
+
+topology:
+  defaults:
+    kind: linux
+    image: {{ net.image }}
+  nodes:
+{% for r in net.routers.values() %}
+    {{ r.name }}:
+      labels:
+        netlab.site: {{ r.site }}
+      binds:
+        - configs/{{ r.name }}:/etc/frr
+      exec:
+        - ip route del default
+{% endfor %}
+  links:
+{% for l in net.links %}
+    - endpoints: ["{{ l.a_router }}:{{ l.a_interface }}", "{{ l.b_router }}:{{ l.b_interface }}"]
+{% endfor %}

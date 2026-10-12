@@ -1,0 +1,77 @@
+# Intended operational state. The monitor compares live FRR state against this file.
+routers:
+  dca-r1:
+    interfaces_up: [eth1]
+    ospf_neighbors: [10.0.1.2]
+    routes:
+      0.0.0.0/0: ospf
+      10.0.1.2/32: ospf
+
+  dca-edge:
+    interfaces_up: [eth1, eth2]
+    ospf_neighbors: [10.0.1.1]
+    bgp_peers:
+      172.16.10.1: {route_map_in: RM-EBGP-IN, route_map_out: RM-EBGP-OUT}
+    routes:
+      10.0.1.1/32: ospf
+      10.0.2.1/32: bgp
+      10.0.2.2/32: bgp
+
+  bb1:
+    interfaces_up: [eth1, eth2]
+    ospf_neighbors: [10.0.0.2]
+    ldp_neighbors: [10.0.0.2]
+    bgp_peers:
+      172.16.10.0: {route_map_in: RM-EBGP-IN, route_map_out: RM-EBGP-OUT}
+      10.0.0.2: {}
+    routes:
+      10.0.0.2/32: ospf
+      10.0.1.1/32: bgp
+      10.0.1.2/32: bgp
+      10.0.2.1/32: bgp
+      10.0.2.2/32: bgp
+
+  bb2:
+    interfaces_up: [eth1, eth2]
+    ospf_neighbors: [10.0.0.1]
+    ldp_neighbors: [10.0.0.1]
+    bgp_peers:
+      172.16.20.0: {route_map_in: RM-EBGP-IN, route_map_out: RM-EBGP-OUT}
+      10.0.0.1: {}
+    routes:
+      10.0.0.1/32: ospf
+      10.0.1.1/32: bgp
+      10.0.1.2/32: bgp
+      10.0.2.1/32: bgp
+      10.0.2.2/32: bgp
+
+  dcb-edge:
+    interfaces_up: [eth1, eth2]
+    isis_adjacencies: [dcb-r1]
+    bgp_peers:
+      172.16.20.1: {route_map_in: RM-EBGP-IN, route_map_out: RM-EBGP-OUT}
+    routes:
+      10.0.2.1/32: isis
+      10.0.1.1/32: bgp
+      10.0.1.2/32: bgp
+
+  dcb-r1:
+    interfaces_up: [eth1]
+    isis_adjacencies: [dcb-edge]
+    routes:
+      0.0.0.0/0: isis
+      10.0.2.2/32: isis
+
+pings:
+  - name: dca-r1-to-dcb-r1
+    from: dca-r1
+    source: 10.0.1.1
+    to: 10.0.2.1
+  - name: gre-ab
+    from: dca-edge
+    to: 192.168.100.2
+    tunnel: gre-ab
+  - name: ipip-ab
+    from: dca-r1
+    to: 192.168.101.2
+    tunnel: ipip-ab

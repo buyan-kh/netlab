@@ -1,0 +1,125 @@
+frr version 10.2.1
+frr defaults traditional
+hostname {{ router.name }}
+log stdout informational
+service integrated-vtysh-config
+!
+{% if router.bgp and router.bgp.networks or ebgp_neighbors %}
+ip prefix-list PL-LAB-PREFIXES seq 10 permit 10.0.0.0/8 le 32
+!
+{% endif %}
+{% for iface in router.interfaces.values() %}
+interface {{ iface.name }}
+{% for addr in iface.ipv4 %}
+ ip address {{ addr }}
+{% endfor %}
+{% if router.ospf and iface.ospf %}
+ ip ospf area {{ router.ospf.area }}
+{% if iface.ospf == "passive" %}
+ ip ospf passive
+{% else %}
+ ip ospf dead-interval {{ timers.ospf_dead }}
+ ip ospf hello-interval {{ timers.ospf_hello }}
+ ip ospf network {{ iface.ospf }}
+{% endif %}
+{% endif %}
+{% if router.isis and iface.isis %}
+ ip router isis {{ isis_tag }}
+{% if iface.isis == "passive" %}
+ isis passive
+{% else %}
+ isis circuit-type level-2-only
+ isis hello-interval {{ timers.isis_hello }}
+ isis hello-multiplier {{ timers.isis_hello_multiplier }}
+ isis network {{ iface.isis }}
+{% endif %}
+{% endif %}
+exit
+!
+{% endfor %}
+{% if router.bgp %}
+router bgp {{ router.bgp.asn }}
+ bgp router-id {{ router.router_id }}
+ bgp log-neighbor-changes
+{% if rr_clients %}
+ bgp cluster-id {{ router.router_id }}
+{% endif %}
+ timers bgp {{ timers.bgp_keepalive }} {{ timers.bgp_hold }}
+{% for n in router.bgp.neighbors %}
+ neighbor {{ n.address }} remote-as {{ n.remote_as }}
+{% if n.description %}
+ neighbor {{ n.address }} description {{ n.description }}
+{% endif %}
+{% if n.update_source %}
+ neighbor {{ n.address }} update-source {{ n.update_source }}
+{% endif %}
+ neighbor {{ n.address }} timers connect {{ timers.bgp_connect_retry }}
+{% endfor %}
+ !
+ address-family ipv4 unicast
+{% for net in router.bgp.networks %}
+  network {{ net }}
+{% endfor %}
+{% for n in router.bgp.neighbors %}
+{% if n.next_hop_self %}
+  neighbor {{ n.address }} next-hop-self
+{% endif %}
+{% if n.route_reflector_client %}
+  neighbor {{ n.address }} route-reflector-client
+{% endif %}
+{% if n.remote_as != router.bgp.asn %}
+  neighbor {{ n.address }} route-map RM-EBGP-IN in
+  neighbor {{ n.address }} route-map RM-EBGP-OUT out
+{% endif %}
+{% endfor %}
+ exit-address-family
+exit
+!
+{% endif %}
+{% if router.ospf %}
+router ospf
+ ospf router-id {{ router.router_id }}
+{% if router.ospf.default_originate %}
+ default-information originate always
+{% endif %}
+exit
+!
+{% endif %}
+{% if router.isis %}
+router isis {{ isis_tag }}
+ is-type {{ router.isis.is_type }}
+ net {{ router.isis.net }}
+{% if router.isis.default_originate %}
+ default-information originate ipv4 level-2 always
+{% endif %}
+exit
+!
+{% endif %}
+{% if router.ldp %}
+mpls ldp
+ router-id {{ router.router_id }}
+ !
+ address-family ipv4
+  discovery transport-address {{ router.ldp.transport_address }}
+  !
+{% for iface in router.interfaces.values() if iface.ldp %}
+  interface {{ iface.name }}
+  exit
+  !
+{% endfor %}
+ exit-address-family
+ !
+exit
+!
+{% endif %}
+{% if ebgp_neighbors %}
+route-map RM-EBGP-IN permit 10
+ match ip address prefix-list PL-LAB-PREFIXES
+exit
+!
+route-map RM-EBGP-OUT permit 10
+ match ip address prefix-list PL-LAB-PREFIXES
+exit
+!
+{% endif %}
+end

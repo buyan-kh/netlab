@@ -1,0 +1,9 @@
+bb1: 8 line(s) drifted
+    - ipv6 forwarding
+    - no route-map RM-CHAOS-DENY deny 10
+    + router bgp 65000
+    + address-family ipv4 unicast
+    + neighbor 172.16.10.0 route-map RM-EBGP-IN in
+    + exit
+    + exit
+    + frr version 10.2.1

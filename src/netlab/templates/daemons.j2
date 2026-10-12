@@ -1,0 +1,11 @@
+{% for d in all_daemons -%}
+{{ d }}={{ "yes" if d in router.daemons else "no" }}
+{% endfor -%}
+vtysh_enable=yes
+zebra_options="  -A 127.0.0.1 -s 90000000"
+mgmtd_options="  -A 127.0.0.1"
+bgpd_options="   -A 127.0.0.1"
+ospfd_options="  -A 127.0.0.1"
+isisd_options="  -A 127.0.0.1"
+ldpd_options="   -A 127.0.0.1"
+staticd_options="-A 127.0.0.1"

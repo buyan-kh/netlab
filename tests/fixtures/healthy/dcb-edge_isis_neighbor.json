@@ -1,0 +1,21 @@
+{
+  "areas":[
+    {
+      "area":"core",
+      "circuits":[
+        {
+          "circuit":0,
+          "adj":"dcb-r1",
+          "interface":"eth1",
+          "level":2,
+          "state":"Up",
+          "expires-in":"3s",
+          "snpa":"2020.2020.2020"
+        },
+        {
+          "circuit":0
+        }
+      ]
+    }
+  ]
+}

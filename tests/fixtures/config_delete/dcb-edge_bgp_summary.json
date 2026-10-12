@@ -1,0 +1,45 @@
+{
+"ipv4Unicast":{
+  "routerId":"10.0.2.2",
+  "as":65002,
+  "vrfId":0,
+  "vrfName":"default",
+  "tableVersion":10,
+  "ribCount":3,
+  "ribMemory":384,
+  "peerCount":1,
+  "peerMemory":16904,
+  "peers":{
+    "172.16.20.1":{
+      "hostname":"bb2",
+      "softwareVersion":"n/a",
+      "remoteAs":65000,
+      "localAs":65002,
+      "version":4,
+      "msgRcvd":67,
+      "msgSent":66,
+      "tableVersion":0,
+      "outq":0,
+      "inq":0,
+      "peerUptime":"00:00:04",
+      "peerUptimeMsec":4000,
+      "peerUptimeEstablishedEpoch":1791839694,
+      "pfxRcd":0,
+      "pfxSnt":0,
+      "state":"Active",
+      "peerState":"OK",
+      "connectionsEstablished":1,
+      "connectionsDropped":1,
+      "desc":"bb2",
+      "idType":"ipv4"
+    }
+  },
+  "failedPeers":1,
+  "displayedPeers":1,
+  "totalPeers":1,
+  "dynamicPeers":0,
+  "bestPath":{
+    "multiPathRelax":"false"
+  }
+}
+}
