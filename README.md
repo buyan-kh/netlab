@@ -2,7 +2,9 @@
 
 A six-router lab built with [containerlab](https://containerlab.dev) and [FRRouting](https://frrouting.org) 10.2.1, plus a typed Python toolkit that renders the configs, polls the live control plane, and repairs it when it drifts.
 
-Two sites, `dc-a` and `dc-b`, each run their own interior gateway protocol and originate their loopbacks into BGP. A two-router backbone carries those routes between them over eBGP at the edges and iBGP inside, with `bb1` as the route reflector. LDP runs on the backbone link. A GRE tunnel and an IP-in-IP tunnel are defined between the sites; both are created at deploy time when the host kernel has the drivers.
+Two sites, `dc-a` and `dc-b`, each run their own interior gateway protocol and originate their loopbacks into BGP. A two-router backbone carries those routes between them over eBGP at the edges and iBGP inside, with `bb1` as the route reflector. LDP runs on the backbone link. A GRE tunnel and an IP-in-IP tunnel are configured between the sites.
+
+The GRE tunnel, the IP-in-IP tunnel, and MPLS forwarding are configured in this lab and were not run live. The host kernel used for the live run has no GRE, IPIP, or MPLS drivers, so the tunnel interfaces could not be created and packets could not be label-switched. LDP's control plane did come up. Details are in [What was configured but not run live](#what-was-configured-but-not-run-live).
 
 ## Topology
 
@@ -45,7 +47,14 @@ Timers are short on purpose: BGP keepalive 3 / hold 9, OSPF hello 1 / dead 4, IS
 
 Everything above is generated from [`lab/network.yml`](lab/network.yml). The intended operational state the monitor checks against is [`lab/intended_state.yml`](lab/intended_state.yml).
 
-## What runs live, and what this kernel refused
+## What was configured but not run live
+
+The GRE tunnel (`gre-ab`, 192.168.100.0/30), the IP-in-IP tunnel (`ipip-ab`, 192.168.101.0/30), and MPLS forwarding are part of the lab configuration. None of the three was run live, because of kernel limits on the machine where the lab was deployed:
+
+- **GRE and IP-in-IP.** Both tunnels are declared in `lab/network.yml`, and `netlab up` builds the `ip link add type gre` and `type ipip` commands for them. On this kernel those commands return `Unknown device type` (`sit`, `gretap`, `vxlan`, and `geneve` fail the same way). Containers share the host kernel, so the interfaces were never created and no packet was encapsulated. The deploy probe records that in `build/capabilities.json` and skips tunnel creation instead of failing the lab. On a kernel with `ip_gre` and `ipip` loaded, the same command creates both tunnels and the monitor starts pinging `192.168.100.2` and `192.168.101.2`.
+- **MPLS forwarding.** Both backbone routers are configured for LDP (`mpls ldp` in the rendered FRR config, on the 172.16.0.0/31 link). `ldpd` ran and the neighbor reached `OPERATIONAL`, with label 16 for `10.0.0.2/32`. Forwarding on those labels did not run: `/proc/sys/net/mpls` does not exist here, so the kernel cannot impose or switch labels. Loading `mpls_router` and `mpls_iptunnel` and setting `net.mpls.platform_labels` is what it would take to forward on the labels LDP already allocated.
+
+## What did run live
 
 Deployed and verified on this machine (Linux 6.12.94+, Docker 29.9.0, containerlab 0.81.0, FRR 10.2.1):
 
@@ -54,11 +63,6 @@ Deployed and verified on this machine (Linux 6.12.94+, Docker 29.9.0, containerl
 - both eBGP sessions and the iBGP session `Established`; `bb2` learns `10.0.1.1/32` and `10.0.1.2/32` as reflected routes (`*>i`, next hop `10.0.0.1`)
 - LDP neighbor `10.0.0.2` in state `OPERATIONAL`, with label 16 allocated for `10.0.0.2/32` and implicit-null for local prefixes
 - traceroute from `10.0.1.1` to `10.0.2.1` crossing all five hops, and a ping at 0.091 ms
-
-Not available in this kernel, detected at deploy time rather than assumed:
-
-- **GRE and IP-in-IP.** `ip link add type gre` and `type ipip` return `Unknown device type` (the same for `sit`, `gretap`, `vxlan`, `geneve`). The image can create the interfaces, but the host kernel has no tunnel drivers and containers share it. `netlab up` probes from inside a router, records the result in `build/capabilities.json`, and skips tunnel creation. On a kernel with `ip_gre` and `ipip` loaded, the same command creates both tunnels and the monitor starts pinging `192.168.100.2` and `192.168.101.2`.
-- **MPLS forwarding.** `/proc/sys/net/mpls` does not exist, so labeled packets cannot be forwarded. `ldpd` still runs: the control plane (discovery, session, label bindings) is independent of kernel forwarding, and that part is up. Loading `mpls_router` and `mpls_iptunnel` and setting `net.mpls.platform_labels` is what it would take to forward on the labels LDP already allocated.
 
 The raw command output is in [`docs/captured/`](docs/captured).
 
