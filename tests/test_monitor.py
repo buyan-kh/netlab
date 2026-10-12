@@ -108,6 +108,29 @@ def test_failure_is_detected_fixed_and_resolved(
     assert "netlab_incidents_total 1.0" in metrics
 
 
+def test_torn_snapshot_does_not_trigger_bgp_clear(setup: tuple[Monitor, Scripted, FakeActuator, Clock]) -> None:
+    """Interface read just before the shut, BGP read just after: seen live, must not clear BGP."""
+    from netlab.parsers import BgpPeerState
+
+    mon, scripted, act, clock = setup
+    original = scripted.__call__
+
+    def torn() -> tuple[dict[str, RouterSnapshot], list[PingResult]]:
+        snaps, pings = original()
+        snaps["dca-edge"].bgp_peers["172.16.10.1"] = BgpPeerState("172.16.10.1", 65000, "Active", 0)
+        return snaps, pings
+
+    mon.collector = torn
+    mon.poll_once()
+    assert act.calls == []
+
+    clock.t += 1
+    scripted.broken = True
+    mon.collector = scripted
+    mon.poll_once()
+    assert act.calls == [("up", "dca-edge", "eth2")]
+
+
 def test_diagnose_only_mode(setup: tuple[Monitor, Scripted, FakeActuator, Clock]) -> None:
     mon, scripted, act, _ = setup
     mon.remediate = False

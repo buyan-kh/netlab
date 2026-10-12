@@ -15,7 +15,7 @@ from netlab.collect import PingResult, collect_all, ping
 from netlab.lab import Capabilities, Lab
 from netlab.metrics import Metrics
 from netlab.parsers import RouterSnapshot
-from netlab.remediation import Plan, Remediator, Topology, plan_remediation
+from netlab.remediation import LAYER, Plan, Remediator, Topology, plan_remediation
 
 log = logging.getLogger("netlab.monitor")
 
@@ -50,6 +50,7 @@ class Monitor:
         status_file: Path,
         interval_s: float = 2.0,
         confirm_polls: int = 1,
+        session_confirm_polls: int = 2,
         remediate: bool = True,
         collector: Callable[[], tuple[dict[str, RouterSnapshot], list[PingResult]]] | None = None,
     ) -> None:
@@ -62,6 +63,7 @@ class Monitor:
         self.status_file = status_file
         self.interval_s = interval_s
         self.confirm_polls = confirm_polls
+        self.session_confirm_polls = session_confirm_polls
         self.remediate = remediate
         self.topo = Topology(self.net)
         self.collector = collector or self._collect
@@ -115,7 +117,12 @@ class Monitor:
             )
             self.incident = None
             self.remediator.reset()
-        return [f for k, f in current.items() if self._seen[k][2] >= self.confirm_polls]
+        return [f for k, f in current.items() if self._seen[k][2] >= self._needed(f)]
+
+    def _needed(self, f: Finding) -> int:
+        if LAYER[f.kind] >= 3:
+            return max(self.confirm_polls, self.session_confirm_polls)
+        return self.confirm_polls
 
     def _act(self, plans: list[Plan]) -> None:
         for plan in plans:
@@ -178,7 +185,8 @@ class Monitor:
         self.metrics.observe(snaps, pings, findings)
         confirmed = self._track(findings, t0)
         plans: list[Plan] = []
-        if confirmed and self.remediator.settling():
+        lowest = min((LAYER[f.kind] for f in confirmed), default=0)
+        if confirmed and self.remediator.settling(lowest):
             log.debug("planning_deferred", extra={"reason": "settling after remediation", "findings": len(confirmed)})
         elif confirmed:
             plans = plan_remediation(confirmed, self.topo, self.lab.config_drift)

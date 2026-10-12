@@ -51,6 +51,7 @@ class Plan:
     cause: list[Finding]
     symptoms: list[Finding] = field(default_factory=list)
     evidence: list[str] = field(default_factory=list)
+    layer: int = 0
 
     @property
     def key(self) -> str:
@@ -126,6 +127,7 @@ def plan_remediation(findings: list[Finding], topo: Topology, drift: DriftFn) ->
     plans = planner(causes, topo, drift)
     for p in plans:
         p.symptoms = symptoms
+        p.layer = layer
     return plans
 
 
@@ -292,18 +294,21 @@ class Remediator:
     _last_run: dict[str, float] = field(default_factory=dict)
     _attempts: dict[str, int] = field(default_factory=dict)
     _settle_until: float = 0.0
+    _settle_layer: int = 0
 
     def reset(self) -> None:
         self._attempts.clear()
         self._last_run.clear()
         self._settle_until = 0.0
+        self._settle_layer = 0
 
-    def settling(self) -> bool:
-        return self.clock() < self._settle_until
+    def settling(self, layer: int) -> bool:
+        """A fix at some layer suppresses new plans at that layer or above; lower-layer causes preempt."""
+        return self.clock() < self._settle_until and layer >= self._settle_layer
 
     def allowed(self, plan: Plan) -> tuple[bool, str]:
         now = self.clock()
-        if now < self._settle_until:
+        if self.settling(plan.layer):
             return False, "settling after previous remediation"
         if plan.escalation:
             last = self._last_run.get(plan.key)
@@ -339,4 +344,5 @@ class Remediator:
                 res = StepResult(s, True, "escalated")
             results.append(res)
         self._settle_until = self.clock() + self.settle_s
+        self._settle_layer = plan.layer
         return results

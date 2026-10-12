@@ -159,6 +159,19 @@ def test_remediator_guardrails(topo: Topology) -> None:
     assert rem.allowed(plan)[0]
 
 
+def test_lower_layer_cause_preempts_settle_window(topo: Topology) -> None:
+    clock, act = Clock(), FakeActuator()
+    rem = Remediator(act, settle_s=12, clock=clock)
+    clear = plan_remediation([F("dca-edge", Kind.BGP_PEER_DOWN, "172.16.10.1", "state Active")], topo, no_drift)[0]
+    rem.execute(clear)
+    clock.t += 1
+    shut = plan_remediation([F("dca-edge", Kind.INTERFACE_ADMIN_DOWN, "eth2")], topo, no_drift)[0]
+    assert rem.allowed(shut) == (True, "")
+    rem.execute(shut)
+    clock.t += 1
+    assert rem.allowed(clear) == (False, "settling after previous remediation")
+
+
 def test_escalations_are_not_executed_and_rate_limited(topo: Topology) -> None:
     clock, act = Clock(), FakeActuator()
     rem = Remediator(act, cooldown_s=30, clock=clock)

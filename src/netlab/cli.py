@@ -112,6 +112,7 @@ def cmd_monitor(args: argparse.Namespace) -> int:
         status_file=args.state_dir / "status.json",
         interval_s=args.interval,
         confirm_polls=args.confirm_polls,
+        session_confirm_polls=args.session_confirm_polls,
         remediate=not args.no_remediate,
     )
     start_http_server(args.metrics_port, addr=args.metrics_addr, registry=metrics.registry)
@@ -194,6 +195,12 @@ def build_parser() -> argparse.ArgumentParser:
     mon = sub.add_parser("monitor", help="run the monitoring and auto-remediation daemon")
     mon.add_argument("--interval", type=float, default=2.0, help="poll interval in seconds")
     mon.add_argument("--confirm-polls", type=int, default=1, help="polls a finding must persist before acting")
+    mon.add_argument(
+        "--session-confirm-polls",
+        type=int,
+        default=2,
+        help="polls a session/reachability finding must persist before acting",
+    )
     mon.add_argument("--cooldown", type=float, default=30.0, help="seconds before repeating the same fix")
     mon.add_argument("--settle", type=float, default=12.0, help="seconds to let the network reconverge after a fix")
     mon.add_argument("--no-remediate", action="store_true", help="diagnose only")

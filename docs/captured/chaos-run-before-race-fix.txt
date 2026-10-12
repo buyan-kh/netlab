@@ -1,0 +1,46 @@
+[1/5] link-down: shut dca-edge eth2 (DC-A uplink to the backbone)
+    detected 1.15s  diagnosed 1.15s  remediated 1.18s  recovered (MTTR) 3.68s
+    root cause: dca-edge:eth2 was shut (admin down); link partner bb1:eth1 lost carrier. Adjacencies and sessions over this link drop, and routes learned across it are withdrawn
+[1/5] config-delete: delete the eBGP neighbor to dcb-edge from bb2's running config
+    detected 1.82s  diagnosed 1.96s  remediated 2.16s  recovered (MTTR) 5.69s
+    root cause: BGP neighbor 172.16.20.0 (dcb-edge) was deleted from the running config: config drift from intended state
+[1/5] bad-route-map: attach a deny-all inbound route-map to bb1's eBGP session with dca-edge
+    detected 0.17s  diagnosed 0.30s  remediated 0.55s  recovered (MTTR) 1.17s
+    root cause: BGP neighbor 172.16.10.0 (dca-edge) has an unexpected route-map (in=RM-CHAOS-DENY out=RM-EBGP-OUT, expected in=RM-EBGP-IN out=RM-EBGP-OUT): config drift from intended state
+[2/5] link-down: shut dca-edge eth2 (DC-A uplink to the backbone)
+    detected 0.29s  diagnosed 13.63s  remediated 13.66s  recovered (MTTR) 16.13s
+    root cause: dca-edge:eth2 was shut (admin down); link partner bb1:eth1 lost carrier. Adjacencies and sessions over this link drop, and routes learned across it are withdrawn
+[2/5] config-delete: delete the eBGP neighbor to dcb-edge from bb2's running config
+    detected 1.77s  diagnosed 1.91s  remediated 2.11s  recovered (MTTR) 5.67s
+    root cause: BGP neighbor 172.16.20.0 (dcb-edge) was deleted from the running config: config drift from intended state
+[2/5] bad-route-map: attach a deny-all inbound route-map to bb1's eBGP session with dca-edge
+    detected 1.70s  diagnosed 1.84s  remediated 2.11s  recovered (MTTR) 3.51s
+    root cause: BGP neighbor 172.16.10.0 (dca-edge) has an unexpected route-map (in=RM-CHAOS-DENY out=RM-EBGP-OUT, expected in=RM-EBGP-IN out=RM-EBGP-OUT): config drift from intended state
+[3/5] link-down: shut dca-edge eth2 (DC-A uplink to the backbone)
+    detected 0.20s  diagnosed 12.56s  remediated 12.59s  recovered (MTTR) 15.07s
+    root cause: dca-edge:eth2 was shut (admin down); link partner bb1:eth1 lost carrier. Adjacencies and sessions over this link drop, and routes learned across it are withdrawn
+[3/5] config-delete: delete the eBGP neighbor to dcb-edge from bb2's running config
+    detected 1.12s  diagnosed 1.25s  remediated 1.46s  recovered (MTTR) 4.98s
+    root cause: BGP neighbor 172.16.20.0 (dcb-edge) was deleted from the running config: config drift from intended state
+[3/5] bad-route-map: attach a deny-all inbound route-map to bb1's eBGP session with dca-edge
+    detected 0.36s  diagnosed 0.49s  remediated 0.74s  recovered (MTTR) 1.37s
+    root cause: BGP neighbor 172.16.10.0 (dca-edge) has an unexpected route-map (in=RM-CHAOS-DENY out=RM-EBGP-OUT, expected in=RM-EBGP-IN out=RM-EBGP-OUT): config drift from intended state
+[4/5] link-down: shut dca-edge eth2 (DC-A uplink to the backbone)
+    detected 0.31s  diagnosed 2.04s  remediated 2.07s  recovered (MTTR) 4.54s
+    root cause: dca-edge:eth2 was shut (admin down); link partner bb1:eth1 lost carrier. Adjacencies and sessions over this link drop, and routes learned across it are withdrawn
+[4/5] config-delete: delete the eBGP neighbor to dcb-edge from bb2's running config
+    detected 0.25s  diagnosed 0.39s  remediated 0.58s  recovered (MTTR) 3.37s
+    root cause: BGP neighbor 172.16.20.0 (dcb-edge) was deleted from the running config: config drift from intended state
+[4/5] bad-route-map: attach a deny-all inbound route-map to bb1's eBGP session with dca-edge
+    detected 0.30s  diagnosed 0.43s  remediated 0.68s  recovered (MTTR) 1.30s
+    root cause: BGP neighbor 172.16.10.0 (dca-edge) has an unexpected route-map (in=RM-CHAOS-DENY out=RM-EBGP-OUT, expected in=RM-EBGP-IN out=RM-EBGP-OUT): config drift from intended state
+[5/5] link-down: shut dca-edge eth2 (DC-A uplink to the backbone)
+    detected 1.11s  diagnosed 1.11s  remediated 1.15s  recovered (MTTR) 3.61s
+    root cause: dca-edge:eth2 was shut (admin down); link partner bb1:eth1 lost carrier. Adjacencies and sessions over this link drop, and routes learned across it are withdrawn
+[5/5] config-delete: delete the eBGP neighbor to dcb-edge from bb2's running config
+    detected 1.12s  diagnosed 1.26s  remediated 1.47s  recovered (MTTR) 5.02s
+    root cause: BGP neighbor 172.16.20.0 (dcb-edge) was deleted from the running config: config drift from intended state
+[5/5] bad-route-map: attach a deny-all inbound route-map to bb1's eBGP session with dca-edge
+    detected 0.40s  diagnosed 0.54s  remediated 0.79s  recovered (MTTR) 1.40s
+    root cause: BGP neighbor 172.16.10.0 (dca-edge) has an unexpected route-map (in=RM-CHAOS-DENY out=RM-EBGP-OUT, expected in=RM-EBGP-IN out=RM-EBGP-OUT): config drift from intended state
+results appended to results/chaos-results.jsonl
