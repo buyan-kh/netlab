@@ -133,11 +133,16 @@ class Monitor:
                     "symptoms": [_finding_doc(f) for f in plan.symptoms],
                     "evidence": plan.evidence[:20],
                     "steps": [f"{s.action.value}:{s.router}:{s.target}".rstrip(":") for s in plan.steps],
-                    "will_execute": self.remediate,
+                    "will_execute": self.remediate and not plan.escalation,
                 },
             )
-            if not self.remediate:
-                self.remediator._last_run[plan.key] = self.remediator.clock()
+            if plan.escalation or not self.remediate:
+                self.remediator.mark(plan)
+                if plan.escalation:
+                    log.error(
+                        "escalation",
+                        extra={"incident": inc, "root_cause": plan.root_cause, "plan": plan.key},
+                    )
                 continue
             t0 = time.time()
             results = self.remediator.execute(plan)
@@ -173,7 +178,9 @@ class Monitor:
         self.metrics.observe(snaps, pings, findings)
         confirmed = self._track(findings, t0)
         plans: list[Plan] = []
-        if confirmed:
+        if confirmed and self.remediator.settling():
+            log.debug("planning_deferred", extra={"reason": "settling after remediation", "findings": len(confirmed)})
+        elif confirmed:
             plans = plan_remediation(confirmed, self.topo, self.lab.config_drift)
             self._act(plans)
         duration = time.time() - t0

@@ -303,11 +303,11 @@ class Remediator:
 
     def allowed(self, plan: Plan) -> tuple[bool, str]:
         now = self.clock()
+        if now < self._settle_until:
+            return False, "settling after previous remediation"
         if plan.escalation:
             last = self._last_run.get(plan.key)
             return (last is None or now - last >= self.cooldown_s * 2), "escalation already raised"
-        if now < self._settle_until:
-            return False, "settling after previous remediation"
         last = self._last_run.get(plan.key)
         if last is not None and now - last < self.cooldown_s:
             return False, "cooldown"
@@ -315,8 +315,11 @@ class Remediator:
             return False, "max attempts reached"
         return True, ""
 
-    def execute(self, plan: Plan) -> list[StepResult]:
+    def mark(self, plan: Plan) -> None:
         self._last_run[plan.key] = self.clock()
+
+    def execute(self, plan: Plan) -> list[StepResult]:
+        self.mark(plan)
         if plan.escalation:
             return [StepResult(s, True, "escalated") for s in plan.steps]
         self._attempts[plan.key] = self._attempts.get(plan.key, 0) + 1
