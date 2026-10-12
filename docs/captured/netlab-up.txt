@@ -1,0 +1,52 @@
+$ netlab up
+WARNING netlab.lab: kernel lacks gre tunnel support: Error: Unknown device type.
+WARNING netlab.lab: kernel lacks ipip tunnel support: Error: Unknown device type.
+WARNING netlab.lab: kernel lacks MPLS forwarding (no /proc/sys/net/mpls); LDP runs control-plane only
+WARNING netlab.lab: skipping tunnel gre-ab: gre not supported by host kernel
+WARNING netlab.lab: skipping tunnel ipip-ab: ipip not supported by host kernel
+21:38:08 INFO Containerlab started version=0.81.0
+21:38:08 INFO Parsing & checking topology file=netlab.clab.yml
+21:38:08 INFO Removing directory path=/workspace/build/clab-netlab
+21:38:08 INFO Creating docker network name=netlab-mgmt IPv4 subnet=172.20.20.0/24 IPv6 subnet="" MTU=0
+21:38:08 INFO Creating lab directory path=/workspace/build/clab-netlab
+21:38:08 INFO Creating container name=bb2
+21:38:08 INFO Creating container name=dcb-edge
+21:38:08 INFO Creating container name=dca-edge
+21:38:08 INFO Creating container name=dcb-r1
+21:38:08 INFO Created link: bb2:eth2 ▪┄┄▪ dcb-edge:eth2
+21:38:09 INFO Creating container name=bb1
+21:38:09 INFO Created link: dcb-edge:eth1 ▪┄┄▪ dcb-r1:eth1
+21:38:09 INFO Creating container name=dca-r1
+21:38:09 INFO Created link: dca-r1:eth1 ▪┄┄▪ dca-edge:eth1
+21:38:09 INFO Created link: dca-edge:eth2 ▪┄┄▪ bb1:eth1
+21:38:09 INFO Created link: bb1:eth2 ▪┄┄▪ bb2:eth1
+21:38:09 INFO Executed command node=dcb-r1 command="ip route del default" stdout=""
+21:38:09 INFO Executed command node=bb2 command="ip route del default" stdout=""
+21:38:09 INFO Executed command node=dca-edge command="ip route del default" stdout=""
+21:38:09 INFO Executed command node=dcb-edge command="ip route del default" stdout=""
+21:38:09 INFO Executed command node=dca-r1 command="ip route del default" stdout=""
+21:38:09 INFO Executed command node=bb1 command="ip route del default" stdout=""
+21:38:09 INFO Adding host entries path=/etc/hosts
+21:38:09 INFO Adding SSH config for nodes path=/etc/ssh/ssh_config.d/clab-netlab.conf
+╭──────────────────────┬──────────────────────────────┬─────────┬────────────────╮
+│         Name         │          Kind/Image          │  State  │ IPv4/6 Address │
+├──────────────────────┼──────────────────────────────┼─────────┼────────────────┤
+│ clab-netlab-bb1      │ linux                        │ running │ 172.20.20.2    │
+│                      │ quay.io/frrouting/frr:10.2.1 │         │ N/A            │
+├──────────────────────┼──────────────────────────────┼─────────┼────────────────┤
+│ clab-netlab-bb2      │ linux                        │ running │ 172.20.20.3    │
+│                      │ quay.io/frrouting/frr:10.2.1 │         │ N/A            │
+├──────────────────────┼──────────────────────────────┼─────────┼────────────────┤
+│ clab-netlab-dca-edge │ linux                        │ running │ 172.20.20.4    │
+│                      │ quay.io/frrouting/frr:10.2.1 │         │ N/A            │
+├──────────────────────┼──────────────────────────────┼─────────┼────────────────┤
+│ clab-netlab-dca-r1   │ linux                        │ running │ 172.20.20.5    │
+│                      │ quay.io/frrouting/frr:10.2.1 │         │ N/A            │
+├──────────────────────┼──────────────────────────────┼─────────┼────────────────┤
+│ clab-netlab-dcb-edge │ linux                        │ running │ 172.20.20.6    │
+│                      │ quay.io/frrouting/frr:10.2.1 │         │ N/A            │
+├──────────────────────┼──────────────────────────────┼─────────┼────────────────┤
+│ clab-netlab-dcb-r1   │ linux                        │ running │ 172.20.20.7    │
+│                      │ quay.io/frrouting/frr:10.2.1 │         │ N/A            │
+╰──────────────────────┴──────────────────────────────┴─────────┴────────────────╯
+lab up; kernel capabilities: gre=False ipip=False mpls_forwarding=False

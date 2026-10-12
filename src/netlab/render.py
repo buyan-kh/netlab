@@ -79,6 +79,8 @@ def write_build(net: Network, build_dir: Path) -> list[Path]:
             ("vtysh.conf", rendered.vtysh_conf),
         ):
             path = out / name
+            # frr-reload's "write memory" replaces frr.conf with a file owned by the container's frr user.
+            path.unlink(missing_ok=True)
             path.write_text(body)
             written.append(path)
     topo = build_dir / f"{net.name}.clab.yml"

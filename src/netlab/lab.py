@@ -80,9 +80,16 @@ class Lab:
             raise RuntimeError(f"containerlab {args[0]} failed: {res.stderr.strip() or res.stdout.strip()}")
         return res
 
-    def up(self) -> Capabilities:
+    def deploy(self) -> str:
         self.render()
-        self._clab("deploy", "--reconfigure")
+        res = self._clab("deploy", "--reconfigure")
+        return (res.stderr + res.stdout).strip()
+
+    def up(self) -> Capabilities:
+        self.deploy()
+        return self.post_deploy()
+
+    def post_deploy(self) -> Capabilities:
         caps = self.probe_capabilities()
         self.capabilities_file.write_text(json.dumps(asdict(caps), indent=2) + "\n")
         self.create_tunnels(caps)

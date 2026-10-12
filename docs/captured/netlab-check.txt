@@ -1,0 +1,12 @@
+$ netlab check
+ping dca-r1-to-dcb-r1     dca-r1 -> 10.0.2.1        ok 0.091 ms
+dca-r1    bgp 0/0 established  ospf 1  isis 0  ldp 0  routes 7
+dca-edge  bgp 1/1 established  ospf 1  isis 0  ldp 0  routes 10
+bb1       bgp 2/2 established  ospf 1  isis 0  ldp 1  routes 12
+bb2       bgp 2/2 established  ospf 1  isis 0  ldp 1  routes 12
+dcb-edge  bgp 1/1 established  ospf 0  isis 1  ldp 0  routes 10
+dcb-r1    bgp 0/0 established  ospf 0  isis 1  ldp 0  routes 7
+tunnel gre-ab (gre): not checked, host kernel has no gre support
+tunnel ipip-ab (ipip): not checked, host kernel has no ipip support
+
+all checks pass: live state matches intended state

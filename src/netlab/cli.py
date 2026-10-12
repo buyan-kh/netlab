@@ -23,7 +23,9 @@ def cmd_render(args: argparse.Namespace) -> int:
 
 
 def cmd_up(args: argparse.Namespace) -> int:
-    caps = _lab(args).up()
+    lab = _lab(args)
+    print(lab.deploy(), flush=True)
+    caps = lab.post_deploy()
     print(f"lab up; kernel capabilities: gre={caps.gre} ipip={caps.ipip} mpls_forwarding={caps.mpls_forwarding}")
     return 0
 
